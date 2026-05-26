@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSQ550 ERCD</title>
+    <style>
+        
+        /* 基礎樣式 */
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #0056b3; text-align: center; }
+        #search { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
+        /* --- 1. 表格整體骨架不變，維持鋼骨結構 --- */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+        
+        /* --- 2. 直接替換成這段：精準控管五個欄位的寬度比例 --- */
+        th:nth-child(1), td:nth-child(1) { width: 5%; text-align: center; }  /* 編號 */
+        th:nth-child(2), td:nth-child(2) { width: 20%; }                     /* 錯誤碼 */
+        th:nth-child(3), td:nth-child(3) { width: 50%; }                     /* 建議處置 */
+        /*th:nth-child(n), td:nth-child(n) { width: 17%; }*/                     /* 描述 */
+        th:nth-child(4), td:nth-child(4) { width: 25%; text-align: center; } /* 參考圖片 */
+
+th { 
+    background-color: #0056b3; 
+    color: white; 
+    padding: 12px; 
+    text-align: left; 
+    font-size: 15px;
+   }
+        /* 核心表格樣式：修正換行與對齊 */
+        td { 
+            padding: 12px; 
+            border-bottom: 1px solid #ddd; 
+            vertical-align: top; 
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.6;
+            /* 魔法關鍵：認得 Excel 的 Alt+Enter 換行符號 */
+            white-space: pre-line !important; 
+            word-break: break-word;
+        }
+
+        /* --- 核心：多圖排版專用魔術（讓多張圖乖乖聽話） --- */
+        .multi-image-container 
+        {
+        display: flex;          /* 啟用彈性排版 */
+        flex-wrap: wrap;        /* 圖片太多時自動換行，絕對不撐寬表格 */
+        gap: 8px;               /* 圖片與圖片之間的固定間隙 */
+        justify-content: center;/* 圖片在儲存格內居中置排 */
+        }
+
+        /* 限制儲存格內所有圖片的基礎大小與比例 */
+        #tableBody td img 
+        {
+        width: 80px;            /* 固定多圖時每張圖的寬度，讓它們能並排 */
+        height: 80px;           /* 固定高度，讓連環圖看起來非常整齊 */
+        object-fit: cover;      /* 核心魔法：自動裁剪填滿方塊，絕對不拉伸變形 */
+        border-radius: 4px; 
+        border: 1px solid #ccc;
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out; /* 放大時的平滑動畫 */
+        }
+
+        /* 💡 超酷炫功能：滑鼠移到任何一張小圖上，照片會放大看細節 */
+        #tableBody td img:hover 
+        {
+        transform: scale(2.5);  /* 放大 2.5 倍 */
+        position: relative;
+        z-index: 999;           /* 確保放大時圖片會浮在最上層，不被遮住 */
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3); /* 加上陰影更有立體感 */
+        border-color: #0056b3;
+        }
+
+        /* 手機版響應式設計 */
+        /* 📱 針對手機與行動裝置的專屬最佳化樣式 */
+            @media screen and (max-width: 600px) {
+            /* 核心骨架：一樣強制執行固定寬度，不讓內容撐開 */
+            table {
+                table-layout: fixed !important;
+                width: 100% !important;
+                }
+
+            /* 🛠️ 在手機上重新分配 4 個欄位的寬度比例 (加起來等於 100%) */
+            th:nth-child(1), td:nth-child(1) { width: 5% !important; text-align: center; }  /* 編號變超窄 */
+            th:nth-child(2), td:nth-child(2) { width: 20% !important; }                     /* 錯誤碼變窄 */
+            th:nth-child(3), td:nth-child(3) { width: 50% !important; }                     /* 建議處置極大化 */
+            th:nth-child(4), td:nth-child(4) { width: 25% !important; text-align: center; }  /* 參考圖片剛好 */
+
+            /* 文字微調：手機螢幕小，字體稍微縮小一點點閱讀更流暢 */
+            th, td {
+                padding: 8px 4px !important; /* 縮小上下左右的內距，挪出更多空間 */
+                font-size: 12px !important;  /* 字體微縮 */
+            }
+
+            /* 手機版圖片微調：讓多圖在手機上也能完美並排 */
+            #tableBody td img {
+                width: 45px !important;      /* 手機上縮圖變小（原本是80px） */
+                height: 45px !important;
+            }
+    
+            .multi-image-container {
+                gap: 4px !important;         /* 縮小圖片間距 */
+            }
+        }
+    
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>NSQ550 ERCD</h1>
+    <input type="text" id="search" placeholder="輸入關鍵字 (例如: IM, Motor, MPCA)...">
+
+     <!-- 描述 (Description)暫時隱藏  -->
+    <table id="errorTable">
+        <thead>
+            <tr>
+                <th>編號</th>
+                <th>錯誤碼</th>
+                <th>建議處置 (Solution)</th>
+                <th>參考圖片</th>
+            
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script src="data.js"></script>
+
+<script>
+
+    const searchInput = document.getElementById('search');
+    const tableBody = document.getElementById('tableBody');
+
+    function renderTable(filterText = "") 
+    {
+        tableBody.innerHTML = ""; 
+
+        if (typeof errorData === 'undefined')
+         {
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">尚未讀取到資料 (data.js)</td></tr>';
+            return;
+         }
+
+          const filteredData = errorData.filter(item => 
+          {
+            // 這裡自動偵測欄位名稱，避免因為 'Description' 或 'Unnamed: 1' 導致顯示不出來
+            const col1 = String(item['Error message'] || "").toLowerCase();
+            const col2 = String(item['Solution'] || item['Unnamed: 1'] || "").toLowerCase();
+            const col3 = String(item['Description'] || "").toLowerCase();
+            
+            return col1.includes(filterText.toLowerCase()) || 
+                   col2.includes(filterText.toLowerCase()) ||
+                   col3.includes(filterText.toLowerCase());
+          });
+
+             filteredData.forEach((item, index) => {
+
+                    // 1. 抓取內容
+                    // 關鍵修正：確保抓取正確的描述內容
+                    let errorMsg = item['Error message'] || "-";
+                    
+                    // 同時嘗試兩種可能的標題
+                    let solution = item['Solution'] || item['Unnamed: 1'] || "-"; 
+                    
+                    let desc = item['Description'] || "-";
+                    
+                    // 抓取 Excel 裡的 Image 欄位
+                    let imagePath = item['Image'] || ""; 
+                    let imageHtml = "-";
+
+            // 2. 定義顏色對照表：[關鍵字, 顏色代碼]
+            const colorRules = 
+            [
+            { word: "Egr", color: "red" },
+            //{ word: "Check", color: "#0056b3" },      // 藍色
+            //{ word: "Restart", color: "green" },
+            { word: "Power cycle", color: "orange" }       // color: #0056b3;
+            ];
+
+             // 3. 透過迴圈自動處理 desc 和 solution
+                colorRules.forEach(rule => {
+                 // g:全域, i:不分大小寫
+                const regex = new RegExp(rule.word, "gi");
+                const replacement = `<span style="color:${rule.color}; font-weight:bold;">$&</span>`;
+
+                desc = desc.replace(regex, replacement);
+                solution = solution.replace(regex, replacement);
+                });
+
+                    // 4. 圖片顯示邏輯 (智慧支援單圖與多圖)
+                    // 🔍 智慧圖片解析邏輯 (支援單圖路徑 vs 多圖HTML)
+
+                    let imgValue = String(item['Image'] || "").trim(); // 強制轉成字串並去前後空白
+if (imagePath && imagePath.trim() !== "" && imagePath !== "-") {
+    
+    // 如果路徑裡面包含了 "<img " 字眼，代表 Excel 寫的是多圖 HTML
+    if (imagePath.includes("<img")) {
+        // 多圖模式：直接顯示你寫的 HTML，不需要額外包裝點擊連結
+        imageHtml = `<div class="multi-image-container">${imagePath}</div>`;
+    } 
+    // 📷 情況 B：如果是單圖路徑模式 (例如 images/image052.jpg)
+    else {
+        imageHtml = `
+            <a href="${imgValue}" target="_blank">
+                <img src="${imgValue}" 
+                     style="width:80px; height:80px; object-fit:cover; border-radius:4px;" 
+                     alt="參考圖片"
+                     onerror="this.onerror=null; this.src='https://placehold.co/80x80?text=No+Image';">
+            </a> `;
+       
+         }
+}
+                     else 
+                    {
+                    // ❌ 情況 C：完全沒有圖片資料
+                     imageHtml = "<span style='color:#ccc;'>無圖片</span>";
+                    }
+
+            // 5. 產生行內容
+            // <td>${desc}</td> 暫時拿掉
+            const row = `
+                <tr>
+                    <td style="text-align:center; font-weight:bold; color:#666">${index + 1}</td>
+                    <td><strong>${errorMsg}</strong></td>
+                    <td>${solution}</td> 
+                    
+                    <td>${imageHtml}</td>
+                </tr>
+            `;
+            tableBody.innerHTML += row;
+        });
+
+        if (filteredData.length === 0)
+        {
+            //colspan="n", n 標題數量
+            tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">找不到符合的資料</td></tr>';
+        }
+    }
+
+    searchInput.addEventListener('input', (e) => renderTable(e.target.value));
+    
+    // 初始化
+    window.onload = function() {
+    // 🔒 設定你專屬的密碼（可以自己改成想要的數字或英文，例如機型代號）
+    const CORRECT_PASSWORD = "prisma"; 
+    
+    // 🔑 彈出視窗要求輸入密碼
+    let userPassword = prompt("請輸入訪問密碼 (Please enter password)：");
+    
+    if (userPassword === CORRECT_PASSWORD) {
+        alert("驗證成功！歡迎使用。");
+        
+        // 1. 密碼正確，才載入原本的表格資料
+        renderTable(); 
+        
+        // 2. 自動讓全網頁的圖片點擊時，一律在新分頁打開原始大圖
+        document.getElementById('tableBody').addEventListener('click', function(e) {
+            if (e.target.tagName === 'IMG') {
+                const imageUrl = e.target.src;
+                if (imageUrl && !imageUrl.includes('placehold.co')) {
+                    window.open(imageUrl, '_blank');
+                }
+            }
+        });
+        
+    } else {
+        // ❌ 密碼錯誤，直接拒絕訪問
+        alert("密碼錯誤，拒絕訪問！");
+        document.body.innerHTML = `
+            <div style="text-align:center; margin-top:100px; color:#ff4d4f; font-family:sans-serif;">
+                <h2>🔒 存取遭拒 (Access Denied)</h2>
+                <p>您輸入了錯誤的密碼，無法檢視此系統。請重新整理網頁並再試一次。</p>
+            </div>
+        `;
+    }
+};
+
+    // 🌐 自動讓全網頁的圖片點擊時，一律在新分頁打開原始大圖
+document.getElementById('tableBody').addEventListener('click', function(e) {
+    // 檢查點擊的是不是圖片 (IMG 標籤)
+    if (e.target.tagName === 'IMG') {
+        const imageUrl = e.target.src; // 抓取圖片的網址/路徑
+        
+        if (imageUrl && !imageUrl.includes('placehold.co')) {
+            // 🚀 強制開啟新分頁，並將網址導向這張圖片
+            window.open(imageUrl, '_blank');
+        }
+    }
+});
+</script>
+
+</body>
+</html>
