@@ -156,7 +156,7 @@ th {
                    col3.includes(filterText.toLowerCase());
           });
 
-             filteredData.forEach((item, index) => {
+             filteredData.forEach((item) => {
 
                     // 1. 抓取內容
                     // 關鍵修正：確保抓取正確的描述內容
@@ -170,6 +170,9 @@ th {
                     // 抓取 Excel 裡的 Image 欄位
                     let imagePath = item['Image'] || ""; 
                     let imageHtml = "-";
+
+                    // 🎯 關鍵改動：找出此筆資料在原始 errorData 陣列中的真實索引值 (Index)
+                    const originalIndex = errorData.indexOf(item);
 
             // 2. 定義顏色對照表：[關鍵字, 顏色代碼]
             const colorRules = 
@@ -223,7 +226,7 @@ if (imagePath && imagePath.trim() !== "" && imagePath !== "-") {
             // <td>${desc}</td> 暫時拿掉
             const row = `
                 <tr>
-                    <td style="text-align:center; font-weight:bold; color:#666">${index + 1}</td>
+                    <td style="text-align:center; font-weight:bold; color:#666">${originalIndex + 1}</td>
                     <td><strong>${errorMsg}</strong></td>
                     <td>${solution}</td> 
                     
